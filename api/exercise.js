@@ -1,7 +1,6 @@
-const { Router } = require('express');
-const UserEntry = require('../models/user'); // import scyhema Model
+const { Router } = require("express");
+const UserEntry = require("../models/user"); // import scyhema Model
 const router = Router();
-
 
 // Return array of users:
 router.get("/users", (req, res) => {
@@ -11,7 +10,7 @@ router.get("/users", (req, res) => {
     for (let entry in doc) {
       responseArray.push({
         username: doc[entry].username,
-        _id: doc[entry]._id
+        _id: doc[entry]._id,
       });
     }
     res.json(responseArray);
@@ -20,42 +19,50 @@ router.get("/users", (req, res) => {
 
 // Post New User Obj
 // {username:string, id: number, exercises: []}
-router.post('/new-user', (req, res, next) => {
+router.post("/new-user", (req, res, next) => {
   // save user object in db
   // respond with user obj id + userName
+
   var username = req.body.username;
- // var exercises = [];
+  // var exercises = [];
   try {
-    var user = new UserEntry({username: username, /*exercises:exercises*/});
-    user.save((err,data) => {
-                if (err) return console.error(err);
-                res.json({
-                  username: data.username,
-                  _id: data._id
-                });
+    var user = new UserEntry({ username: username /*exercises:exercises*/ });
+    user.save((err, data) => {
+      if (err) return console.error(err);
+      res.json({
+        username: data.username,
+        _id: data._id,
+      });
     });
-  } catch(error){
+  } catch (error) {
     next(error);
   }
 });
 
-
 // Add exercises
 // POST form data
-router.post('/add', (req, res, next) => {
-  console.log(req.body)
+router.post("/add", (req, res, next) => {
+  console.log(req.body);
   var exerciseSession = req.body;
-   if (!exerciseSession.userId || !exerciseSession.description || !exerciseSession.duration) {
-    res.send("User ID, Description and Duration are required fields - please enter values...")}
+  if (
+    !exerciseSession.userId ||
+    !exerciseSession.description ||
+    !exerciseSession.duration
+  ) {
+    res.send(
+      "User ID, Description and Duration are required fields - please enter values..."
+    );
+  }
   // check req has a date, add now if not supplied
-  if (!exerciseSession.date || exerciseSession.date == "") exerciseSession.date = new Date();
+  if (!exerciseSession.date || exerciseSession.date == "")
+    exerciseSession.date = new Date();
   let duration = parseInt(exerciseSession.duration);
   let dateString = new Date(exerciseSession.date).toDateString();
-  
-    let exerciseInstance = {
+
+  let exerciseInstance = {
     description: exerciseSession.description,
     duration: duration,
-    date: dateString
+    date: dateString,
   };
   //const doc = await UserEntry.findOne({_id: req.body.userId})
   /*
@@ -82,7 +89,7 @@ router.post('/add', (req, res, next) => {
         description: exerciseInstance.description,
         duration: exerciseInstance.duration,
         _id: doc._id,
-        date: exerciseInstance.date
+        date: exerciseInstance.date,
       });
     }
   );
@@ -99,34 +106,32 @@ router.get("/log", (req, res) => {
   // If the user doesn't specify from and to dates:
   if (!from && !to) {
     // Check db for provided userId
-    UserEntry.findOne({_id: userId}, (err, doc) => {
+    UserEntry.findOne({ _id: userId }, (err, doc) => {
       if (err) return console.log("Error finding ID: ", err);
       if (doc == null) {
-        console.log(userId)
+        console.log(userId);
         res.send("Unknown UserId.. Plz try again!");
       } else {
-        
         let exercise = doc.exercises;
         let log = [];
-     
+
         for (let i = 0; i < limitCheck(limit, exercise.length); i++) {
           log.push({
             activity: exercise[i].description,
             duration: exercise[i].duration,
-            date: exercise[i].date
+            date: exercise[i].date,
           });
         }
         userInfo = {
           _id: userId,
           username: doc.username,
           count: log.length,
-          log: log
+          log: log,
         };
         res.json(userInfo);
-      
       }
     });
-  // If the user specifies from and to dates:
+    // If the user specifies from and to dates:
   } else {
     UserEntry.find()
       .where("_id")
@@ -147,14 +152,14 @@ router.get("/log", (req, res) => {
             log.push({
               activity: exercise[i].description,
               duration: exercise[i].duration,
-              date: exercise[i].date
+              date: exercise[i].date,
             });
           }
           userInfo = {
             _id: userId,
             username: doc[0].username,
             count: log.length,
-            log: log
+            log: log,
           };
           res.json(userInfo);
         }
@@ -169,7 +174,5 @@ router.get("/log", (req, res) => {
     }
   };
 });
-
-
 
 module.exports = router;
